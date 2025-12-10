@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNICAR — Структура автоматизации</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: rgba(255,255,255,0.02);
+      --border-color: rgba(255,255,255,0.06);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255,255,255,0.6);
+      --text-muted: rgba(255,255,255,0.4);
+      --accent-purple: #8b5cf6;
+      --accent-purple-glow: rgba(139, 92, 246, 0.3);
+      --accent-orange: #f97316;
+      --accent-green: #22c55e;
+      --accent-blue: #3b82f6;
+      --glass-bg: rgba(255,255,255,0.03);
+      --glass-border: rgba(255,255,255,0.08);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      min-height: 100vh;
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* Animated Background */
+    .bg-gradient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(59, 130, 246, 0.1), transparent),
+        radial-gradient(ellipse 40% 30% at 0% 100%, rgba(249, 115, 22, 0.08), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 40px 30px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .logo-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--accent-purple), #6366f1);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 32px var(--accent-purple-glow);
+    }
+
+    .logo {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo span {
+      background: linear-gradient(135deg, var(--accent-purple), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    /* Main Title Card */
+    .main-title-card {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.05));
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 24px;
+      padding: 32px 48px;
+      margin-bottom: 50px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .main-title-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+    }
+
+    .main-title {
+      font-size: 32px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .main-title-icon {
+      font-size: 36px;
+    }
+
+    .main-title-text span {
+      color: var(--accent-purple);
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--accent-purple);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Branches Grid */
+    .branches {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .branch {
+      background: var(--glass-bg);
+      border-radius: 24px;
+      padding: 28px;
+      border: 1px solid var(--glass-border);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.8s ease-out both;
+    }
+
+    .branch:nth-child(1) { animation-delay: 0.3s; }
+    .branch:nth-child(2) { animation-delay: 0.4s; }
+    .branch:nth-child(3) { animation-delay: 0.5s; }
+
+    .branch::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .branch:nth-child(1)::before { background: linear-gradient(90deg, var(--accent-orange), #fb923c); }
+    .branch:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-green), #4ade80); }
+    .branch:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-blue), #60a5fa); }
+
+    .branch:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255,255,255,0.12);
+      box-shadow:
+        0 32px 64px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .branch-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .branch-icon-wrapper {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      position: relative;
+    }
+
+    .branch:nth-child(1) .branch-icon-wrapper {
+      background: rgba(249, 115, 22, 0.15);
+      box-shadow: 0 8px 24px rgba(249, 115, 22, 0.2);
+    }
+    .branch:nth-child(2) .branch-icon-wrapper {
+      background: rgba(34, 197, 94, 0.15);
+      box-shadow: 0 8px 24px rgba(34, 197, 94, 0.2);
+    }
+    .branch:nth-child(3) .branch-icon-wrapper {
+      background: rgba(59, 130, 246, 0.15);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+    }
+
+    .branch-info {
+      flex: 1;
+    }
+
+    .branch-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .branch:nth-child(1) .branch-title { color: var(--accent-orange); }
+    .branch:nth-child(2) .branch-title { color: var(--accent-green); }
+    .branch:nth-child(3) .branch-title { color: var(--accent-blue); }
+
+    .branch-count {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .branch-deadline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: rgba(139, 92, 246, 0.15);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+
+    .branch-deadline svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .section-title:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .section-arrow {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .section-arrow svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.3s ease;
+    }
+
+    .section.open .section-arrow svg {
+      transform: rotate(90deg);
+    }
+
+    .section-title-text {
+      flex: 1;
+    }
+
+    .section-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .section-deadline {
+      font-size: 12px;
+      color: var(--accent-purple);
+      background: rgba(139, 92, 246, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .section-items {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .section.open .section-items {
+      max-height: 500px;
+    }
+
+    .section-items-inner {
+      padding: 0 16px 16px;
+    }
+
+    .item {
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 12px 0 12px 28px;
+      position: relative;
+      transition: all 0.2s;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .item:hover {
+      color: var(--text-primary);
+      padding-left: 32px;
+    }
+
+    .item::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      transition: all 0.2s;
+    }
+
+    .branch:nth-child(1) .item::before {
+      background: var(--accent-orange);
+      box-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
+    }
+    .branch:nth-child(2) .item::before {
+      background: var(--accent-green);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+    }
+    .branch:nth-child(3) .item::before {
+      background: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .item:hover::before {
+      transform: translateY(-50%) scale(1.3);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 60px;
+      text-align: center;
+      animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    .footer-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-purple), #6366f1);
+      color: white;
+      box-shadow: 0 8px 32px var(--accent-purple-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-primary);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .footer-note {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .footer-note a {
+      color: var(--accent-purple);
+      text-decoration: none;
+    }
+
+    .footer-note a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .branches {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .branch:nth-child(3) {
+        grid-column: span 2;
+        max-width: 600px;
+        margin: 0 auto;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 24px 16px;
+      }
+
+      .branches {
+        grid-template-columns: 1fr;
+      }
+
+      .branch:nth-child(3) {
+        grid-column: span 1;
+        max-width: none;
+      }
+
+      .main-title {
+        font-size: 22px;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .stats-bar {
+        flex-wrap: wrap;
+        gap: 24px;
+      }
+
+      .logo {
+        font-size: 32px;
+      }
+
+      .logo-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
+
+      .footer-buttons {
+        flex-direction: column;
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.15);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+  <div class="noise"></div>
+
+  <div class="container">
+    <header class="header">
+      <div class="logo-wrapper">
+        <div class="logo-icon">🚗</div>
+        <div class="logo">UNI<span>CAR</span></div>
+      </div>
+      <p class="subtitle">Структура проекта автоматизации</p>
+    </header>
+
+    <div class="main-title-card">
+      <h1 class="main-title">
+        <span class="main-title-icon">🎯</span>
+        <span class="main-title-text"><span>UNICAR</span> — Автоматизация бизнеса аренды</span>
+      </h1>
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Направления</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">13</div>
+          <div class="stat-label">Разделов</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">41</div>
+          <div class="stat-label">Задач</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">30</div>
+          <div class="stat-label">Дней</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="branches">
+      <!-- Редизайн сайта -->
+      <div class="branch">
+        <div class="branch-header">
+          <div class="branch-icon-wrapper">🎨</div>
+          <div class="branch-info">
+            <div class="branch-title">Редизайн сайта</div>
+            <div class="branch-count">3 раздела • 15 задач</div>
+            <div class="branch-deadline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Неделя 1-2
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Обновление страниц</span>
+            <span class="section-count">6</span>
+            <span class="section-deadline">5 дней</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Главная страница</div>
+              <div class="item">Каталог транспорта</div>
+              <div class="item">Страница бронирования</div>
+              <div class="item">Контакты</div>
+              <div class="item">О компании</div>
+              <div class="item">Условия аренды</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Навигация</span>
+            <span class="section-count">4</span>
+            <span class="section-deadline">3 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Упрощение структуры меню</div>
+              <div class="item">Логичная иерархия разделов</div>
+              <div class="item">Быстрый доступ к бронированию</div>
+              <div class="item">Мобильная адаптация меню</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Минималистичный дизайн</span>
+            <span class="section-count">5</span>
+            <span class="section-deadline">4 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Чистая типографика</div>
+              <div class="item">Много воздуха</div>
+              <div class="item">Акцентные цвета</div>
+              <div class="item">Качественные фото транспорта</div>
+              <div class="item">Современные UI-компоненты</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Sheets -->
+      <div class="branch">
+        <div class="branch-header">
+          <div class="branch-icon-wrapper">📊</div>
+          <div class="branch-info">
+            <div class="branch-title">Google Sheets</div>
+            <div class="branch-count">4 раздела • 12 задач</div>
+            <div class="branch-deadline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Неделя 1
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Таблица аренды транспорта</span>
+            <span class="section-count">3</span>
+            <span class="section-deadline">2 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Список всех единиц ТС</div>
+              <div class="item">Статус (свободен/занят/ремонт)</div>
+              <div class="item">Даты аренды</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Информация о транспорте</span>
+            <span class="section-count">5</span>
+            <span class="section-deadline">2 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Марка и модель</div>
+              <div class="item">Гос. номер</div>
+              <div class="item">Год выпуска / Пробег</div>
+              <div class="item">Дата последнего ТО</div>
+              <div class="item">Страховка</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Удобство работы</span>
+            <span class="section-count">2</span>
+            <span class="section-deadline">2 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Фильтры и сортировка</div>
+              <div class="item">Цветовая индикация статусов</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Отчётность</span>
+            <span class="section-count">2</span>
+            <span class="section-deadline">1 день</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Сводные таблицы</div>
+              <div class="item">Статистика по аренде</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bitrix24 -->
+      <div class="branch">
+        <div class="branch-header">
+          <div class="branch-icon-wrapper">⚙️</div>
+          <div class="branch-info">
+            <div class="branch-title">Bitrix24</div>
+            <div class="branch-count">6 разделов • 25 задач</div>
+            <div class="branch-deadline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Неделя 2-4
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Интеграция с сайтом</span>
+            <span class="section-count">4</span>
+            <span class="section-deadline">3 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Подключение REST API</div>
+              <div class="item">Вебхуки для событий</div>
+              <div class="item">Обработка форм сайта</div>
+              <div class="item">Синхронизация данных</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Автоматизация карточек</span>
+            <span class="section-count">4</span>
+            <span class="section-deadline">3 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Создание сделки при заявке</div>
+              <div class="item">Заполнение полей автоматически</div>
+              <div class="item">Привязка к контакту</div>
+              <div class="item">История взаимодействий</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Воронка продаж</span>
+            <span class="section-count">4</span>
+            <span class="section-deadline">2 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Новая заявка → В обработке</div>
+              <div class="item">Подтверждено → Оплачено</div>
+              <div class="item">Выдано → Завершено</div>
+              <div class="item">Отказ</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Данные клиента</span>
+            <span class="section-count">4</span>
+            <span class="section-deadline">2 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">ФИО / Телефон / Email</div>
+              <div class="item">Паспортные данные</div>
+              <div class="item">Водительское удостоверение</div>
+              <div class="item">История аренд</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Рассылки</span>
+            <span class="section-count">4</span>
+            <span class="section-deadline">3 дня</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Email-уведомления</div>
+              <div class="item">SMS-напоминания</div>
+              <div class="item">Автоматические триггеры</div>
+              <div class="item">Шаблоны сообщений</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section open">
+          <div class="section-title" onclick="toggleSection(this)">
+            <div class="section-arrow">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
+            <span class="section-title-text">Система бронирования</span>
+            <span class="section-count">5</span>
+            <span class="section-deadline">5 дней</span>
+          </div>
+          <div class="section-items">
+            <div class="section-items-inner">
+              <div class="item">Календарь занятости ТС</div>
+              <div class="item">Блокировка дат при брони</div>
+              <div class="item">Проверка доступности</div>
+              <div class="item">Автоматический расчёт стоимости</div>
+              <div class="item">Подтверждение бронирования</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-buttons">
+        <button class="btn btn-primary" onclick="toggleAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          Свернуть / Развернуть всё
+        </button>
+        <button class="btn btn-secondary" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          Печать
+        </button>
+      </div>
+      <p class="footer-note">UNICAR — Техническое задание v1.0</p>
+    </footer>
+  </div>
+
+  <script>
+    function toggleSection(titleElement) {
+      const section = titleElement.closest('.section');
+      section.classList.toggle('open');
+    }
+
+    let allOpen = true;
+    function toggleAll() {
+      allOpen = !allOpen;
+      document.querySelectorAll('.section').forEach(section => {
+        if (allOpen) {
+          section.classList.add('open');
+        } else {
+          section.classList.remove('open');
+        }
+      });
+    }
+
+    // Add smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+  </script>
+</body>
+</html>
